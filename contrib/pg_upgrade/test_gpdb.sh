@@ -314,6 +314,7 @@ pkill gp_upgrade_hub
 gp_upgrade prepare start-hub
 gp_upgrade check config
 
+
 # Create a new gpdemo cluster in the temproot. Using the old datadir for the
 # path to demo_cluster.sh is a bit of a hack, but since this test relies on
 # gpdemo having been used for ICW it will do for now.
