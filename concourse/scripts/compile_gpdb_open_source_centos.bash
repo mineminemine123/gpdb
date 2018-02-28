@@ -6,8 +6,8 @@ GPDB_SRC_PATH=${GPDB_SRC_PATH:=gpdb_src}
 
 function prep_env_for_centos() {
   export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.39.x86_64
-  export PATH=${JAVA_HOME}/bin:${PATH}
   export GOPATH=$(pwd)/${GPDB_SRC_PATH}/gpMgmt/go-utils
+  export PATH=${JAVA_HOME}/bin:${PATH}:${GOPATH}/bin
   install_system_deps
 }
 

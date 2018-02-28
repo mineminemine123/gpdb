@@ -149,8 +149,8 @@ function _main() {
         ;;
   esac
 
-  export PATH=${JAVA_HOME}/bin:${PATH}
   export GOPATH=$(pwd)/${GPDB_SRC_PATH}/gpMgmt/go-utils
+  export PATH=${JAVA_HOME}/bin:${PATH}:${GOPATH}/bin
   generate_build_number
   make_sync_tools
   case "${TARGET_OS}" in
