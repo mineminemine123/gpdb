@@ -57,10 +57,10 @@ func addFlagOptions() {
 }
 
 func addFlagOptionsToConvertMaster() {
-	subConvertMaster.PersistentFlags().StringVar(&oldDataDir, "old-datadir", "", "data directory for old gpdb version")
-	subConvertMaster.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
-	subConvertMaster.PersistentFlags().StringVar(&newDataDir, "new-datadir", "", "data directory for new gpdb version")
-	subConvertMaster.PersistentFlags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
+	subConvertMaster.Flags().StringVar(&oldDataDir, "old-datadir", "", "data directory for old gpdb version")
+	subConvertMaster.Flags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
+	subConvertMaster.Flags().StringVar(&newDataDir, "new-datadir", "", "data directory for new gpdb version")
+	subConvertMaster.Flags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
 }
 
 func addFlagOptionsToCheck() {
@@ -70,15 +70,19 @@ func addFlagOptionsToCheck() {
 }
 
 func addFlagOptionsToInitCluster() {
-	subInitCluster.PersistentFlags().IntVar(&newClusterDbPort, "port", -1, "port for Greenplum on new master")
+	subInitCluster.Flags().IntVar(&newClusterDbPort, "port", -1, "port for Greenplum on new master")
 }
 
 func addFlagOptionsToShutdownClusters() {
-	subShutdownClusters.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
-	subShutdownClusters.PersistentFlags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
+	subShutdownClusters.Flags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
+	subShutdownClusters.MarkFlagRequired("old-bindir")
+	subShutdownClusters.Flags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
+	subShutdownClusters.MarkFlagRequired("new-bindir")
 }
 
 func addFlagOptionsToValidateStartCluster() {
-	subValidateStartCluster.PersistentFlags().StringVar(&newDataDir, "new-datadir", "", "data directory for new gpdb version")
-	subValidateStartCluster.PersistentFlags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
+	subValidateStartCluster.Flags().StringVar(&newDataDir, "new-datadir", "", "data directory for new gpdb version")
+	subValidateStartCluster.MarkFlagRequired("new-datadir")
+	subValidateStartCluster.Flags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
+	subValidateStartCluster.MarkFlagRequired("new-bindir")
 }

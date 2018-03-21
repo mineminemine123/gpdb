@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var _ = Describe("prepare validate-start-cluster", func() {
+var _ = Describe("prepare shutdown-clusters", func() {
 	var (
 		dir           string
 		hub           *services.HubClient
@@ -29,6 +29,14 @@ var _ = Describe("prepare validate-start-cluster", func() {
 		var err error
 		dir, err = ioutil.TempDir("", "")
 		Expect(err).ToNot(HaveOccurred())
+
+		config := `[{
+  			  "content": 2,
+  			  "dbid": 7,
+  			  "hostname": "localhost"
+  			}]`
+
+		testutils.WriteProvidedConfig(dir, config)
 
 		conf := &services.HubConfig{
 			CliToHubPort:   7527,
@@ -54,12 +62,12 @@ var _ = Describe("prepare validate-start-cluster", func() {
 
 	It("updates status PENDING to RUNNING then to COMPLETE if successful", func(done Done) {
 		defer close(done)
+		oldBinDir, err := ioutil.TempDir("", "")
+		Expect(err).ToNot(HaveOccurred())
 		newBinDir, err := ioutil.TempDir("", "")
 		Expect(err).ToNot(HaveOccurred())
-		newDataDir, err := ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
 
-		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Validate the upgraded cluster can start up"))
+		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Shutdown clusters"))
 
 		trigger := make(chan struct{}, 1)
 		commandExecer.SetTrigger(trigger)
@@ -70,43 +78,43 @@ var _ = Describe("prepare validate-start-cluster", func() {
 			defer wg.Done()
 			defer GinkgoRecover()
 
-			Eventually(runStatusUpgrade).Should(ContainSubstring("RUNNING - Validate the upgraded cluster can start up"))
+			Eventually(runStatusUpgrade).Should(ContainSubstring("RUNNING - Shutdown clusters"))
 			trigger <- struct{}{}
 		}()
 
-		prepareStartAgentsSession := runCommand("upgrade", "validate-start-cluster", "--new-bindir", newBinDir, "--new-datadir", newDataDir)
-		Eventually(prepareStartAgentsSession).Should(Exit(0))
+		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters", "--old-bindir", oldBinDir, "--new-bindir", newBinDir)
+		Eventually(prepareShutdownClustersSession).Should(Exit(0))
 		wg.Wait()
 
 		Expect(commandExecer.Command()).To(Equal("bash"))
-		Expect(strings.Join(commandExecer.Args(), "")).To(ContainSubstring("gpstart"))
-		Eventually(runStatusUpgrade).Should(ContainSubstring("COMPLETE - Validate the upgraded cluster can start up"))
+		Expect(strings.Join(commandExecer.Args(), "")).To(ContainSubstring("gpstop"))
+		Eventually(runStatusUpgrade).Should(ContainSubstring("COMPLETE - Shutdown clusters"))
 	})
 
 	It("updates status to FAILED if it fails to run", func() {
+		oldBinDir, err := ioutil.TempDir("", "")
+		Expect(err).ToNot(HaveOccurred())
 		newBinDir, err := ioutil.TempDir("", "")
 		Expect(err).ToNot(HaveOccurred())
-		newDataDir, err := ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
 
-		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Validate the upgraded cluster can start up"))
+		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Shutdown clusters"))
 
 		commandExecer.SetOutput(&testutils.FakeCommand{
 			Err: errors.New("start failed"),
 			Out: nil,
 		})
 
-		prepareStartAgentsSession := runCommand("upgrade", "validate-start-cluster", "--new-bindir", newBinDir, "--new-datadir", newDataDir)
-		Eventually(prepareStartAgentsSession).Should(Exit(1))
+		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters", "--old-bindir", oldBinDir, "--new-bindir", newBinDir)
+		Eventually(prepareShutdownClustersSession).Should(Exit(1))
 
 		Expect(commandExecer.Command()).To(Equal("bash"))
-		Expect(strings.Join(commandExecer.Args(), "")).To(ContainSubstring("gpstart"))
-		Eventually(runStatusUpgrade).Should(ContainSubstring("FAILED - Validate the upgraded cluster can start up"))
+		Expect(strings.Join(commandExecer.Args(), "")).To(ContainSubstring("gpstop"))
+		Eventually(runStatusUpgrade).Should(ContainSubstring("FAILED - Shutdown clusters"))
 	})
 
-	It("fails if the --new-bindir or --new-datadir flags are missing", func() {
-		prepareStartAgentsSession := runCommand("upgrade", "validate-start-cluster")
-		Expect(prepareStartAgentsSession).Should(Exit(1))
-		Expect(string(prepareStartAgentsSession.Out.Contents())).To(Equal("Required flag(s) \"new-bindir\", \"new-datadir\" have/has not been set\n"))
+	It("fails if the --old-bindir or --new-bindir flags are missing", func() {
+		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters")
+		Expect(prepareShutdownClustersSession).Should(Exit(1))
+		Expect(string(prepareShutdownClustersSession.Out.Contents())).To(Equal("Required flag(s) \"new-bindir\", \"old-bindir\" have/has not been set\n"))
 	})
 })

@@ -92,15 +92,6 @@ var subShutdownClusters = &cobra.Command{
 	Use:   "shutdown-clusters",
 	Short: "shuts down both old and new cluster",
 	Long:  "Current assumptions is both clusters exist.",
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if oldBinDir == "" {
-			return errors.New("the required flag '--old-bindir' was not specified")
-		}
-		if newBinDir == "" {
-			return errors.New("the required flag '--new-bindir' was not specified")
-		}
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		conn, connConfigErr := grpc.Dial("localhost:"+hubPort, grpc.WithInsecure())
 		if connConfigErr != nil {
@@ -345,16 +336,6 @@ var subValidateStartCluster = &cobra.Command{
 	Use:   "validate-start-cluster",
 	Short: "Attempt to start upgraded cluster",
 	Long:  `Use gpstart in order to validate that the new cluster can successfully transition from a stopped to running state`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if newBinDir == "" {
-			return errors.New("the required flag '--new-bindir' was not specified")
-		}
-		if newDataDir == "" {
-			return errors.New("the required flag '--new-datadir' was not specified")
-		}
-
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		conn, connConfigErr := grpc.Dial("localhost:"+hubPort,
 			grpc.WithInsecure())
